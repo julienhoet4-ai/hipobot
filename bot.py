@@ -1,22 +1,28 @@
-from telethon import TelegramClient, events
+import os
 import requests
+from telethon import TelegramClient, events
 
-api_id = 32836446
-api_hash = "44e62ff75a99db3edc5eb653a80154b6"
-webhook_url = "https://discord.com/api/webhooks/1494415373603311777/9KYl6vj4V7l4wGZ8XatbHRy7NC-cEDRVpGoHOF9ROrbwo6ba_s0G3gNbNMajdJX70iBJ"
+# Récupération des variables depuis Railway
+api_id = int(os.getenv("API_ID"))
+api_hash = os.getenv("API_HASH")
+bot_token = os.getenv("BOT_TOKEN")
+webhook_url = os.getenv("WEBHOOK_URL")
+channel = os.getenv("CHANNEL")
 
-channel = "@Hipobuyworld"
+# Connexion du bot
+client = TelegramClient("bot", api_id, api_hash).start(bot_token=bot_token)
 
-client = TelegramClient("session", api_id, api_hash)
-
+# Quand un message arrive
 @client.on(events.NewMessage(chats=channel))
 async def handler(event):
     message = event.message.message
-    
+
     if message:
         print("Message reçu :", message)
-        requests.post(webhook_url, json={"content": message})
 
-client.start()
-print("Bot lancé et connecté...")
+        requests.post(webhook_url, json={
+            "content": message
+        })
+
+print("✅ Bot lancé et connecté")
 client.run_until_disconnected()
