@@ -1,17 +1,3 @@
-from telethon import TelegramClient, events
-from telethon.sessions import StringSession
-import requests
-import os
-
-api_id = int(os.getenv("API_ID"))
-api_hash = os.getenv("API_HASH")
-session = os.getenv("SESSION")
-webhook_url = os.getenv("WEBHOOK_URL")
-
-channel = "@Hipobuyworld"
-
-client = TelegramClient(StringSession(session), api_id, api_hash)
-
 @client.on(events.NewMessage(chats=channel))
 async def handler(event):
     message = event.message.message
@@ -19,14 +5,17 @@ async def handler(event):
 
     content = ""
 
-    # TEXTE + LIENS CACHÉS
     if message:
         content = message
 
+        # Transformer les liens cachés en liens cliquables
         if entities:
             for entity in entities:
                 if hasattr(entity, 'url'):
-                    content += f"\n🔗 {entity.url}"
+                    text = message[entity.offset:entity.offset + entity.length]
+                    url = entity.url
+                    markdown_link = f"[{text}]({url})"
+                    content = content.replace(text, markdown_link)
 
         print("Message:", content)
         requests.post(webhook_url, json={"content": content})
@@ -36,9 +25,3 @@ async def handler(event):
         file = await event.message.download_media()
         with open(file, "rb") as f:
             requests.post(webhook_url, files={"file": f})
-
-client.start()
-print("Bot connecté")
-client.run_until_disconnected()
-print("Bot connecté")
-client.run_until_disconnected()
