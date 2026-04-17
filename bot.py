@@ -15,16 +15,30 @@ client = TelegramClient(StringSession(session), api_id, api_hash)
 @client.on(events.NewMessage(chats=channel))
 async def handler(event):
     message = event.message.message
+    entities = event.message.entities
 
+    content = ""
+
+    # TEXTE + LIENS CACHÉS
     if message:
-        print("Message:", message)
-        requests.post(webhook_url, json={"content": message})
+        content = message
 
+        if entities:
+            for entity in entities:
+                if hasattr(entity, 'url'):
+                    content += f"\n🔗 {entity.url}"
+
+        print("Message:", content)
+        requests.post(webhook_url, json={"content": content})
+
+    # IMAGE
     if event.message.photo:
         file = await event.message.download_media()
         with open(file, "rb") as f:
             requests.post(webhook_url, files={"file": f})
 
 client.start()
+print("Bot connecté")
+client.run_until_disconnected()
 print("Bot connecté")
 client.run_until_disconnected()
