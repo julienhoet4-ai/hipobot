@@ -5,7 +5,7 @@ async def handler(event):
 
     content = message if message else ""
 
-    # Transformer liens cachés en markdown cliquable
+    # Liens cliquables
     if entities and message:
         for entity in entities:
             if hasattr(entity, 'url'):
@@ -15,19 +15,24 @@ async def handler(event):
 
     embed = {
         "description": content,
-        "color": 5814783  # couleur bleu stylé
+        "color": 5814783
     }
 
-    # IMAGE dans le même bloc
+    # IMAGE + EMBED
     if event.message.photo:
         file = await event.message.download_media()
+
         embed["image"] = {"url": "attachment://image.jpg"}
 
         with open(file, "rb") as f:
             requests.post(
                 webhook_url,
-                data={"payload_json": str({"embeds": [embed]})},
-                files={"file": ("image.jpg", f)}
+                data={
+                    "payload_json": json.dumps({"embeds": [embed]})
+                },
+                files={
+                    "file": ("image.jpg", f)
+                }
             )
     else:
         requests.post(
